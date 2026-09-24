@@ -1,0 +1,50 @@
+name: uniform_checkin
+description: "Application for Domino's employees to check in their uniform compliance via photo upload."
+publish_to: 'none'
+version: 2.0.1+6
+
+environment:
+  sdk: ^3.10.1
+
+dependencies:
+  camera: ^0.12.0
+  flutter:
+    sdk: flutter
+  http: ^1.6.0
+  media_kit: ^1.2.6
+  media_kit_libs_video: ^1.0.7
+  media_kit_video: ^2.0.1
+  package_info_plus: ^9.0.0
+  path_provider: ^2.1.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  change_app_package_name: ^1.5.0
+  flutter_launcher_icons: ^0.14.4
+  rename_app: ^1.6.5
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
+  fonts:
+    - family: Dominos Sans Header 1
+      fonts:
+        - asset: fonts/Dominos Sans Header 1.otf
+    - family: Dominos Sans Header 2
+      fonts:
+        - asset: fonts/Dominos Sans Header 2.otf
+    - family: Dominos Sans Subhead 1
+      fonts:
+        - asset: fonts/Dominos Sans Subhead 1.otf
+    - family: Dominos Sans Subhead 2
+      fonts:
+        - asset: fonts/Dominos Sans Subhead 2.otf
+    - family: Dominos Sans Body
+      fonts:
+        - asset: fonts/Dominos Sans Body.otf
+    - family: Dominos Sans Bold
+      fonts:
+        - asset: fonts/Dominos Sans Bold.otf
