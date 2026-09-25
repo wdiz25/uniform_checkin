@@ -1,36 +1,38 @@
 # Uniform Check-In
 
-A Flutter kiosk app built for a locally owned Domino's store. Employees use it at the start of a shift to record that they're in uniform. Managers can access these photos to review uniform compliance over the past two weeks. The process has been shown to be a strong motivator to wear the correct uniform. It runs on a wall-mounted Android tablet.
+A Flutter kiosk app built for a single-store Domino's franchise. Employees use the app at the start of a shift to record that they are in uniform and meet all appearance standards. Managers can access these photos to review uniform compliance over the past two weeks. In-store this app runs on a wall-mounted Android tablet. Since introducing this process, violations of uniform and appearance standards have decreased by 70%.
 
 <p align="center">
   <img src="docs/Home_Screen.png" alt="Home screen with Begin Check-In button" width="250">
   <img src="docs/Verification_Screen.png" alt="Photo review screen with Discard and Submit buttons" width="250">
-  <img src="docs/Procssing_Screen.png" alt="Upload in progress screen" width="250">
+  <img src="docs/Processing_Screen.png" alt="Upload in progress screen" width="250">
 </p>
 
 ## How It Works
 
-1. An employee taps **Begin Check-In** on the home screen.
-2. A countdown asks them to step back behind a line on the floor, and then the app takes a photo with the tablet's front camera.
-3. At the same moment, it grabs a frame from the store's security camera over RTSP, which provides a higher-resolution full-body view.
-4. The employee reviews the photo and taps **Submit** or **Discard**.
-5. Both images are base64-encoded and POSTed to a Google Apps Script web app, which stores them for managers to review through an AppSheet interface.
+1. An employee presses **Begin Check-In** on the home screen.
+2. A countdown begins to allow time to step back behind a line on the floor.
+3. When the timer is up, the app takes a photo with the tablet's front camera. Simultaneously, it grabs a frame from the store's security camera over RTSP, providing a higher-resolution full-body view.
+4. The employee is shown the image from the front-facing camera and given the option to **Submit** or **Discard**.
+5. Both images are Base64-encoded and POSTed to a Google Apps Script web app.
+6. The web app processes the received data and stores the images named by timestamp in a Google Drive folder.
+7. A manager can access the AppSheet interface (not included) and view the check-in submissions during less-busy hours.
 
-If the security camera can't be reached, the front-camera photo is uploaded in its place, so a check-in still goes through.
+If the security camera can't be reached, the front camera photo is duplicated and uploaded in its place, so a check-in still goes through.
 
 ## Tech Details
 
 - **Flutter / Dart**
 - [`camera`](https://pub.dev/packages/camera): front-camera preview and capture
 - [`media_kit`](https://pub.dev/packages/media_kit): plays the RTSP security camera stream and takes a screenshot of it
-- [`http`](https://pub.dev/packages/http): uploads the images to the Apps Script endpoint, handling Google's 302 redirect
+- [`http`](https://pub.dev/packages/http): uploads the images to the Apps Script endpoint
 - Kiosk-friendly setup: portrait orientation is locked, the app runs in immersive full-screen mode, and the back button is blocked while an upload is in progress
 
 ## Setup
 
 ### 1. Configuration
 
-The endpoint and credentials aren't hard-coded. They're supplied at build time. Copy the example file (secrets.example.json) and fill in your values.
+The Google Apps Script endpoint and credentials are stored separately in a *secrets.json* file that is supplied at build time. Copy *secrets.example.json* to *secrets.json* and fill in the values.
 
 | Key          | Description                                                  |
 | ------------ | ------------------------------------------------------------ |
@@ -40,21 +42,30 @@ The endpoint and credentials aren't hard-coded. They're supplied at build time. 
 
 ### 2. Fonts
 
-The app uses licensed brand fonts, so they aren't included in this repo. To build it, either place your own `.otf` files in `fonts/` with the names listed in `pubspec.yaml`, or remove the `fonts:` section from `pubspec.yaml` to use the default font.
+The brand fonts used in the app are proprietary and not available outside of approved vendors and partners. The *pubspec.yaml* file references fonts not included in this repo. To build successfully, the `fonts:` section must be removed from *pubspec.yaml* unless alternative fonts exist at the same paths as listed.
 
 ### 3. Run
 
-```sh
+```bash
 flutter pub get
 flutter run --dart-define-from-file=secrets.json
 ```
 
-## Upload Endpoint
+## Backend
 
-The Apps Script backend isn't part of this repo. The app sends it this request:
+The Apps Script backend is included in *apps_script.gs*. The following values must be updated for the script to be set up.
 
+| Variable       | Description                                                       |
+| -------------- | ----------------------------------------------------------------- |
+| `folderId`     | Folder ID of the Google Drive folder where images should be saved |
+| `EXPECTED_KEY` | Shared key that the script checks before accepting an upload      |
+
+`EXPECTED_KEY` must match `SECRET_KEY` defined in *secrets.json*. After deploying the script, the web app URL should be used as `SCRIPT_URL` in *secrets.json*.
+
+The script also includes a `deleteOldFiles()` function that can be called using a time-based trigger to clean up images older than two weeks.
+
+**Expected Payload:**
 ```json
-POST SCRIPT_URL
 {
   "filename": "2026-01-01T09_00_00",
   "mimeType": "image/jpeg",
@@ -64,14 +75,12 @@ POST SCRIPT_URL
 }
 ```
 
-It expects `{"status": "success"}` in response. Any other response is shown to the user as an error, along with its `message` field.
-
-
 ## Future Considerations
-I am planning to migrate the backend and manager-view for this app to Node.js and React by the end of 2026.
+
+Currently, the plan is to migrate the backend and manager view to Node.js and React by the end of 2026 to improve scalability and reduce reliance on third-party services.
 
 ## Legal Notice
 
-This is an independent project built for a single franchise location. It is not affiliated with, endorsed by, or sponsored by Domino's Pizza, Inc. or its subsidiaries. Domino's, the Domino's logo, and related marks are trademarks of their respective owners and are used here only to show the app as it was deployed. The Domino's Sans fonts are proprietary and are not included in this repository.
+This is an independent project built for a single franchise location. It is not affiliated with, endorsed by, or sponsored by Domino's Pizza, Inc. or its subsidiaries. Domino's, the Domino's logo, and related marks are trademarks of their respective owners and are used here only to show the app as it was deployed.
 
 © 2026 William Disman. All rights reserved.
